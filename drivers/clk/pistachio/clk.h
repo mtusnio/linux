@@ -95,13 +95,15 @@ struct pistachio_fixed_factor {
 	}
 
 struct pistachio_pll_rate_table {
-	unsigned long long fref;
-	unsigned long long fout;
-	unsigned long long refdiv;
-	unsigned long long fbdiv;
-	unsigned long long postdiv1;
-	unsigned long long postdiv2;
-	unsigned long long frac;
+	unsigned long fref;
+	unsigned long fout;
+	unsigned long fout_min;
+	unsigned long fout_max;
+	unsigned int refdiv;
+	unsigned int fbdiv;
+	unsigned int postdiv1;
+	unsigned int postdiv2;
+	unsigned int frac;
 };
 
 enum pistachio_pll_type {
