@@ -94,9 +94,15 @@ struct pistachio_fixed_factor {
 		.parent		= _pname,			\
 	}
 
+/*
+ * in order to avoid u32 multiplication overflow, declare all
+ * members of this structure as u64
+ */
 struct pistachio_pll_rate_table {
 	unsigned long long fref;
 	unsigned long long fout;
+	unsigned long long fout_min;
+	unsigned long long fout_max;
 	unsigned long long refdiv;
 	unsigned long long fbdiv;
 	unsigned long long postdiv1;
