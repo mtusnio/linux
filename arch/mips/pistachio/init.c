@@ -14,6 +14,8 @@
 #include <linux/kernel.h>
 #include <linux/of_address.h>
 #include <linux/of_fdt.h>
+#include <linux/of_platform.h>
+#include <linux/platform_device.h>
 
 #include <asm/cacheflush.h>
 #include <asm/dma-coherence.h>
@@ -133,3 +135,17 @@ void __init device_tree_init(void)
 
 	unflatten_and_copy_device_tree();
 }
+
+static int __init plat_of_setup(void)
+{
+	if (!of_have_populated_dt())
+		panic("Device tree not present");
+
+	if (of_platform_populate(NULL, of_default_bus_match_table, NULL, NULL))
+		panic("Failed to populate DT");
+
+	platform_device_register_simple("cpufreq-dt", -1, NULL, 0);
+
+	return 0;
+}
+arch_initcall(plat_of_setup);
