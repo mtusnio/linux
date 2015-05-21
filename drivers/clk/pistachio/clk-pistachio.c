@@ -58,9 +58,10 @@ static struct pistachio_fixed_factor pistachio_ffs[] __initdata = {
 };
 
 static struct pistachio_div pistachio_divs[] __initdata = {
-	DIV(CLK_MIPS_INTERNAL_DIV, "mips_internal_div", "mips_pll_mux",
-	    0x204, 2),
-	DIV(CLK_MIPS_DIV, "mips_div", "mips_internal_div", 0x208, 8),
+	DIV_F(CLK_MIPS_INTERNAL_DIV, "mips_internal_div", "mips_pll_mux",
+		0x204, 2, CLK_SET_RATE_PARENT, CLK_DIVIDER_READ_ONLY),
+	DIV_F(CLK_MIPS_DIV, "mips_div", "mips_internal_div",
+		0x208, 8, CLK_SET_RATE_PARENT, CLK_DIVIDER_READ_ONLY),
 	DIV_F(CLK_AUDIO_DIV, "audio_div", "audio_mux",
 		0x20c, 8, 0, CLK_DIVIDER_ROUND_CLOSEST),
 	DIV_F(CLK_I2S_DIV, "i2s_div", "audio_pll_mux",
@@ -127,7 +128,8 @@ PNAME(mux_xtal_bt) = { "xtal", "bt_pll" };
 static struct pistachio_mux pistachio_muxes[] __initdata = {
 	MUX(CLK_AUDIO_REF_MUX, "audio_refclk_mux", mux_xtal_audio_refclk,
 	    0x200, 0),
-	MUX(CLK_MIPS_PLL_MUX, "mips_pll_mux", mux_xtal_mips, 0x200, 1),
+	MUX_F(CLK_MIPS_PLL_MUX, "mips_pll_mux", mux_xtal_mips,
+	    0x200, 1, CLK_SET_RATE_PARENT),
 	MUX(CLK_AUDIO_PLL_MUX, "audio_pll_mux", mux_xtal_audio, 0x200, 2),
 	MUX(CLK_AUDIO_MUX, "audio_mux", mux_audio_debug, 0x200, 4),
 	MUX(CLK_RPU_V_PLL_MUX, "rpu_v_pll_mux", mux_xtal_rpu_v, 0x200, 5),
