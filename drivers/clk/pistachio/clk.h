@@ -32,6 +32,7 @@ struct pistachio_mux {
 	unsigned int id;
 	unsigned long reg;
 	unsigned int shift;
+	unsigned int clk_flags;
 	unsigned int num_parents;
 	const char *name;
 	const char **parents;
@@ -44,11 +45,22 @@ struct pistachio_mux {
 		.id		= _id,				\
 		.reg		= _reg,				\
 		.shift		= _shift,			\
+		.clk_flags      = CLK_SET_RATE_NO_REPARENT,     \
 		.name		= _name,			\
 		.parents	= _pnames,			\
 		.num_parents	= ARRAY_SIZE(_pnames)		\
 	}
 
+#define MUX_F(_id, _name, _pnames, _reg, _shift, _clkf)		\
+	{							\
+		.id             = _id,				\
+		.reg            = _reg,				\
+		.shift          = _shift,			\
+		.name           = _name,			\
+		.parents        = _pnames,			\
+		.num_parents    = ARRAY_SIZE(_pnames),		\
+		.clk_flags      = _clkf,			\
+	}
 
 struct pistachio_div {
 	unsigned int id;
