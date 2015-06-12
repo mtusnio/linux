@@ -244,7 +244,7 @@ static int pll_gf40lp_frac_set_rate(struct clk_hw *hw, unsigned long rate,
 	/* Calculate the frac parameter */
 	frac = rate * params->refdiv * params->postdiv1 * params->postdiv2;
 	frac -= (params->fbdiv * parent_rate);
-	frac = do_div_round_closest((u64)frac << 24, parent_rate);
+	frac = do_div_round_closest(frac << 24, parent_rate);
 
 	val = pll_readl(pll, PLL_CTRL1);
 	val &= ~((PLL_CTRL1_REFDIV_MASK << PLL_CTRL1_REFDIV_SHIFT) |
