@@ -224,9 +224,13 @@ static int pll_gf40lp_frac_set_rate(struct clk_hw *hw, unsigned long rate,
 	if (!params || !params->refdiv)
 		return -EINVAL;
 
-	/* calculate vco */
+	/* get operating mode and calculate vco accordingly */
 	vco = params->fref;
-	vco *= (params->fbdiv << 24) + params->frac;
+	if (pll_frac_get_mode(hw) == PLL_MODE_INT)
+		vco *= params->fbdiv << 24;
+	else
+		vco *= (params->fbdiv << 24) + params->frac;
+
 	vco = div64_u64(vco, params->refdiv << 24);
 
 	if (vco < MIN_VCO_FRAC_FRAC || vco > MAX_VCO_FRAC_FRAC)
