@@ -287,6 +287,12 @@ static int pll_gf40lp_frac_set_rate(struct clk_hw *hw, unsigned long rate,
 	else
 		pll_frac_set_mode(hw, PLL_MODE_INT);
 
+	/* set operating mode */
+	if (params->frac)
+		pll_frac_set_mode(hw, PLL_MODE_FRAC);
+	else
+		pll_frac_set_mode(hw, PLL_MODE_INT);
+
 	if (enabled)
 		pll_lock(pll);
 
