@@ -273,6 +273,7 @@ static int kszphy_config_init(struct phy_device *phydev)
 	struct kszphy_priv *priv = phydev->priv;
 	const struct kszphy_type *type;
 	int ret;
+	int temp = 0;
 
 	if (!priv)
 		return 0;
@@ -307,6 +308,11 @@ static int kszphy_config_init(struct phy_device *phydev)
 		if (ret < 0)
 			return ret;
 	}
+
+	/* disable PME */
+	temp = phy_read(phydev, 0x16);
+	temp &= ~(1 << 15);
+	phy_write(phydev, 0x16, temp);
 
 	return 0;
 }
