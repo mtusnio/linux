@@ -23,6 +23,7 @@ struct spi_nand {
 	unsigned int		page_addr;
 	unsigned int		bitflips;
 	bool			ecc;
+	struct mtd_ooblayout_ops *ooblayout;
 
 	int (*reset)(struct spi_nand *snand);
 	int (*read_id)(struct spi_nand *snand, u8 *buf);

@@ -48,27 +48,33 @@
 #define SPI_NAND_GD5F_ECC_UNCORR	(BIT(0) | BIT(1) | BIT(2))
 #define SPI_NAND_GD5F_ECC_SHIFT		4
 
-static struct nand_ecclayout ecc_layout_gd5f = {
-	.eccbytes = 128,
-	.eccpos = {
-		128, 129, 130, 131, 132, 133, 134, 135,
-		136, 137, 138, 139, 140, 141, 142, 143,
-		144, 145, 146, 147, 148, 149, 150, 151,
-		152, 153, 154, 155, 156, 157, 158, 159,
-		160, 161, 162, 163, 164, 165, 166, 167,
-		168, 169, 170, 171, 172, 173, 174, 175,
-		176, 177, 178, 179, 180, 181, 182, 183,
-		184, 185, 186, 187, 188, 189, 190, 191,
-		192, 193, 194, 195, 196, 197, 198, 199,
-		200, 201, 202, 203, 204, 205, 206, 207,
-		208, 209, 210, 211, 212, 213, 214, 215,
-		216, 217, 218, 219, 220, 221, 222, 223,
-		224, 225, 226, 227, 228, 229, 230, 231,
-		232, 233, 234, 235, 236, 237, 238, 239,
-		240, 241, 242, 243, 244, 245, 246, 247,
-		248, 249, 250, 251, 252, 253, 254, 255
-	},
-	.oobfree = { {1, 127} }
+static int spi_nand_gd5f_ooblayout_256_ecc(struct mtd_info *mtd, int section,
+					struct mtd_oob_region *oobregion)
+{
+	if (section)
+		return -ERANGE;
+
+	oobregion->offset = 128;
+	oobregion->length = 128;
+
+	return 0;
+}
+
+static int spi_nand_gd5f_ooblayout_256_free(struct mtd_info *mtd, int section,
+					struct mtd_oob_region *oobregion)
+{
+	if (section)
+		return -ERANGE;
+
+	oobregion->offset = 1;
+	oobregion->length = 127;
+
+	return 0;
+}
+
+static const struct mtd_ooblayout_ops spi_nand_gd5f_oob_256_ops = {
+	.ecc = spi_nand_gd5f_ooblayout_256_ecc,
+	.free = spi_nand_gd5f_ooblayout_256_free,
 };
 
 static struct nand_flash_dev spi_nand_flash_ids[] = {
@@ -82,7 +88,6 @@ static struct nand_flash_dev spi_nand_flash_ids[] = {
 		.oobsize = 256,
 		.ecc.strength_ds = 8,
 		.ecc.step_ds = 512,
-		.ecc.layout = &ecc_layout_gd5f,
 	},
 	{
 		.name = "SPI NAND 512MiB 1,8V",
@@ -419,6 +424,7 @@ static int spi_nand_device_probe(struct spi_device *spi)
 	case SPI_NAND_GD5F:
 		snand->read_id = spi_nand_gd5f_read_id;
 		snand->get_ecc_status = spi_nand_gd5f_ecc_status;
+		snand->ooblayout = &spi_nand_gd5f_oob_256_ops;
 		break;
 	default:
 		dev_err(snand->dev, "unknown device\n");

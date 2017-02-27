@@ -484,6 +484,7 @@ int spi_nand_register(struct spi_nand *snand, struct nand_flash_dev *flash_ids)
 	chip->options |= NAND_NO_SUBPAGE_WRITE;
 	chip->bits_per_cell = 1;
 
+	mtd_set_ooblayout(mtd, snand->ooblayout);
 	chip->ecc.read_page	= spi_nand_read_page_hwecc;
 	chip->ecc.write_page	= spi_nand_write_page_hwecc;
 	chip->ecc.mode		= NAND_ECC_HW;
