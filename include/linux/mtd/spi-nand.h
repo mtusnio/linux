@@ -13,7 +13,6 @@
 #include <linux/mtd/nand.h>
 
 struct spi_nand {
-	struct mtd_info		mtd;
 	struct nand_chip	nand_chip;
 	struct device		*dev;
 	const char		*name;

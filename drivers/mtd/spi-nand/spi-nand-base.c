@@ -279,9 +279,9 @@ static int spi_nand_read_page(struct spi_nand *snand, unsigned int page_addr,
 			dev_err(snand->dev,
 				"internal ECC error reading page 0x%x\n",
 				page_addr);
-			snand->mtd.ecc_stats.failed++;
+			snand->nand_chip.mtd.ecc_stats.failed++;
 		} else {
-			snand->mtd.ecc_stats.corrected += corrected;
+			snand->nand_chip.mtd.ecc_stats.corrected += corrected;
 		}
 	}
 
@@ -303,8 +303,8 @@ static int spi_nand_read_page(struct spi_nand *snand, unsigned int page_addr,
 
 static u8 spi_nand_read_byte(struct mtd_info *mtd)
 {
-	struct nand_chip *chip = mtd->priv;
-	struct spi_nand *snand = chip->priv;
+	struct nand_chip *chip = mtd_to_nand(mtd);
+	struct spi_nand *snand = nand_get_controller_data(chip);
 	char val = 0xff;
 
 	if (snand->buf_start < snand->buf_size)
@@ -314,8 +314,8 @@ static u8 spi_nand_read_byte(struct mtd_info *mtd)
 
 static void spi_nand_write_buf(struct mtd_info *mtd, const u8 *buf, int len)
 {
-	struct nand_chip *chip = mtd->priv;
-	struct spi_nand *snand = chip->priv;
+	struct nand_chip *chip = mtd_to_nand(mtd);
+	struct spi_nand *snand = nand_get_controller_data(chip);
 	size_t n = min_t(size_t, len, snand->buf_size - snand->buf_start);
 
 	memcpy(snand->data_buf + snand->buf_start, buf, n);
@@ -324,8 +324,8 @@ static void spi_nand_write_buf(struct mtd_info *mtd, const u8 *buf, int len)
 
 static void spi_nand_read_buf(struct mtd_info *mtd, u8 *buf, int len)
 {
-	struct nand_chip *chip = mtd->priv;
-	struct spi_nand *snand = chip->priv;
+	struct nand_chip *chip = mtd_to_nand(mtd);
+	struct spi_nand *snand = nand_get_controller_data(chip);
 	size_t n = min_t(size_t, len, snand->buf_size - snand->buf_start);
 
 	memcpy(buf, snand->data_buf + snand->buf_start, n);
@@ -346,7 +346,7 @@ static int spi_nand_read_page_hwecc(struct mtd_info *mtd,
 		struct nand_chip *chip, uint8_t *buf, int oob_required,
 		int page)
 {
-	struct spi_nand *snand = chip->priv;
+	struct spi_nand *snand = nand_get_controller_data(chip);
 
 	chip->read_buf(mtd, buf, mtd->writesize);
 	chip->read_buf(mtd, chip->oob_poi, mtd->oobsize);
@@ -356,7 +356,7 @@ static int spi_nand_read_page_hwecc(struct mtd_info *mtd,
 
 static int spi_nand_waitfunc(struct mtd_info *mtd, struct nand_chip *chip)
 {
-	struct spi_nand *snand = chip->priv;
+	struct spi_nand *snand = nand_get_controller_data(chip);
 	int ret;
 
 	ret = spi_nand_wait_till_ready(snand);
@@ -377,8 +377,8 @@ static int spi_nand_waitfunc(struct mtd_info *mtd, struct nand_chip *chip)
 static void spi_nand_cmdfunc(struct mtd_info *mtd, unsigned int command,
 			     int column, int page_addr)
 {
-	struct nand_chip *chip = mtd->priv;
-	struct spi_nand *snand = chip->priv;
+	struct nand_chip *chip = mtd_to_nand(mtd);
+	struct spi_nand *snand = nand_get_controller_data(chip);
 
 	/*
 	 * In case there's any unsupported command, let's make sure
@@ -463,8 +463,7 @@ int spi_nand_check(struct spi_nand *snand)
 int spi_nand_register(struct spi_nand *snand, struct nand_flash_dev *flash_ids)
 {
 	struct nand_chip *chip = &snand->nand_chip;
-	struct mtd_part_parser_data ppdata = {};
-	struct mtd_info *mtd = &snand->mtd;
+	struct mtd_info *mtd = nand_to_mtd(chip);
 	struct device_node *np = snand->dev->of_node;
 	const char __maybe_unused *of_mtd_name = NULL;
 	int ret;
@@ -474,7 +473,8 @@ int spi_nand_register(struct spi_nand *snand, struct nand_flash_dev *flash_ids)
 	if (ret)
 		return ret;
 
-	chip->priv	= snand;
+	nand_set_controller_data(chip, snand);
+	nand_set_flash_node(chip, np);
 	chip->read_buf	= spi_nand_read_buf;
 	chip->write_buf	= spi_nand_write_buf;
 	chip->read_byte	= spi_nand_read_byte;
@@ -499,7 +499,6 @@ int spi_nand_register(struct spi_nand *snand, struct nand_flash_dev *flash_ids)
 	else
 		mtd->name = snand->name;
 	mtd->owner = THIS_MODULE;
-	mtd->priv = chip;
 
 	/* Allocate buffer to be used to read/write the internal registers */
 	snand->buf = kmalloc(SPI_NAND_CMD_BUF_LEN, GFP_KERNEL);
@@ -550,8 +549,7 @@ int spi_nand_register(struct spi_nand *snand, struct nand_flash_dev *flash_ids)
 	if (ret)
 		return ret;
 
-	ppdata.of_node = np;
-	return mtd_device_parse_register(mtd, NULL, &ppdata, NULL, 0);
+	return mtd_device_register(mtd, NULL, 0);
 }
 EXPORT_SYMBOL_GPL(spi_nand_register);
 
@@ -559,7 +557,6 @@ void spi_nand_unregister(struct spi_nand *snand)
 {
 	kfree(snand->buf);
 	kfree(snand->data_buf);
-	nand_release(&snand->mtd);
 }
 EXPORT_SYMBOL_GPL(spi_nand_unregister);
 
