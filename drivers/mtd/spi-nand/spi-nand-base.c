@@ -21,8 +21,7 @@
 #include <linux/mtd/mtd.h>
 #include <linux/mtd/partitions.h>
 #include <linux/mtd/spi-nand.h>
-#include <linux/of_platform.h>
-#include <linux/of_mtd.h>
+#include <linux/of.h>
 #include <linux/slab.h>
 
 /* Registers common to all devices */
@@ -489,7 +488,7 @@ int spi_nand_register(struct spi_nand *snand, struct nand_flash_dev *flash_ids)
 	chip->ecc.write_page	= spi_nand_write_page_hwecc;
 	chip->ecc.mode		= NAND_ECC_HW;
 
-	if (of_get_nand_on_flash_bbt(np))
+	if (of_property_read_bool(np, "nand-on-flash-bbt"))
 		chip->bbt_options |= NAND_BBT_USE_FLASH | NAND_BBT_NO_OOB;
 
 #ifdef CONFIG_MTD_OF_PARTS
