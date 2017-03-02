@@ -174,3 +174,7 @@
 	status = "okay";
 	clock-frequency = <400000>;
 };
+
+&wdt {
+	status = "disabled";
+};
